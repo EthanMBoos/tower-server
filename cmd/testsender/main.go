@@ -3,8 +3,8 @@
 //
 // Usage:
 //
-//	go run ./cmd/testsender -vid ugv-husky-07
-//	go run ./cmd/testsender -vid uav-quad-01 -env air -rate 20
+//	go run ./cmd/testsender -vid ugv-husky-07 -type clearpath-husky-a200
+//	go run ./cmd/testsender -vid uav-quad-01 -env air -rate 20 -type skydio-x2d
 //	go run ./cmd/testsender -vid sensor-01 -caps none  # observation-only (no commands)
 //	go run ./cmd/testsender -vid fixed-wing-01 -caps no-stop  # no stop command
 package main
@@ -31,6 +31,7 @@ func main() {
 	// Note: Short flag names (-vid, -env) are used for CLI brevity.
 	// Full names: vehicle-id, environment, multicast-group, multicast-port, telemetry-rate, capabilities
 	vid := flag.String("vid", "ugv-test-01", "Vehicle ID (e.g., ugv-husky-01, uav-quad-02)")
+	vtype := flag.String("type", "", "Vehicle type hint for UI profile matching (e.g., clearpath-husky-a200, skydio-x2d)")
 	env := flag.String("env", "ground", "Vehicle environment: ground, air, or marine")
 	group := flag.String("group", "239.255.0.1", "Multicast group address for telemetry broadcast")
 	port := flag.Int("port", 14550, "Multicast UDP port for telemetry broadcast")
@@ -117,7 +118,7 @@ func main() {
 		case <-heartbeatTicker.C:
 			// Send heartbeat with capabilities
 			uptimeMs := time.Since(startTime).Milliseconds()
-			hb := buildHeartbeat(*vid, uptimeMs, caps)
+			hb := buildHeartbeat(*vid, *vtype, uptimeMs, caps)
 			data, err := proto.Marshal(hb)
 			if err != nil {
 				log.Printf("Failed to marshal heartbeat: %v", err)
@@ -231,11 +232,12 @@ func buildExtensionCapabilities(env string) []*pb.ExtensionCapability {
 }
 
 // buildHeartbeat creates a heartbeat message with capabilities.
-func buildHeartbeat(vid string, uptimeMs int64, caps *pb.VehicleCapabilities) *pb.VehicleMessage {
+func buildHeartbeat(vid, vtype string, uptimeMs int64, caps *pb.VehicleCapabilities) *pb.VehicleMessage {
 	return &pb.VehicleMessage{
 		Payload: &pb.VehicleMessage_Heartbeat{
 			Heartbeat: &pb.Heartbeat{
 				VehicleId:    vid,
+				VehicleType:  vtype,
 				TimestampMs:  time.Now().UnixMilli(),
 				Status:       pb.VehicleStatus_STATUS_ONLINE,
 				UptimeMs:     uptimeMs,

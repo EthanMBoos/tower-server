@@ -32,15 +32,17 @@ SERVER_PID=$!
 sleep 1
 
 # Start test senders
-VEHICLE_TYPES=("ugv" "uav" "usv" "ugv" "uav")
+VEHICLE_PREFIXES=("ugv" "uav" "usv" "ugv" "uav")
 ENVS=("ground" "air" "marine" "ground" "air")
+TYPE_HINTS=("clearpath-husky-a200" "skydio-x2d" "blueboat" "clearpath-husky-a200" "skydio-x2d")
 
 for i in $(seq 1 $VEHICLE_COUNT); do
     idx=$((($i - 1) % 5))
-    VID="${VEHICLE_TYPES[$idx]}-demo-$(printf '%02d' $i)"
+    VID="${VEHICLE_PREFIXES[$idx]}-demo-$(printf '%02d' $i)"
     ENV="${ENVS[$idx]}"
-    echo "→ Starting vehicle: $VID ($ENV)"
-    go run ./cmd/testsender -vid "$VID" -env "$ENV" -rate 10 &
+    TYPE="${TYPE_HINTS[$idx]}"
+    echo "→ Starting vehicle: $VID ($ENV, type=$TYPE)"
+    go run ./cmd/testsender -vid "$VID" -env "$ENV" -type "$TYPE" -rate 10 &
     sleep 0.2
 done
 
