@@ -85,11 +85,22 @@ func main() {
 
 	startTime := time.Now()
 
-	// Initial vehicle state
+	var startLat, startLng, startAlt float64
+	switch *env {
+	case "ground":
+		startLat, startLng, startAlt = 33.7490, -84.3880, 315.0 // downtown Atlanta, ground level MSL
+	case "air":
+		startLat, startLng, startAlt = 33.7490, -84.3880, 815.0 // downtown Atlanta, ~500m AGL
+	case "marine":
+		startLat, startLng, startAlt = 31.968474, -80.702820, 0.0
+	default:
+		startLat, startLng, startAlt = 33.7490, -84.3880, 315.0
+	}
+
 	state := &vehicleState{
-		lat:         37.7749,
-		lng:         -122.4194,
-		alt:         50,
+		lat:         startLat,
+		lng:         startLng,
+		alt:         startAlt,
 		heading:     rand.Float64() * 360,
 		speed:       5.0,
 		batteryPct:  90,
@@ -197,25 +208,22 @@ func buildExtensionCapabilities(env string) []*pb.ExtensionCapability {
 
 	switch env {
 	case "ground":
-		// Husky UGV extension for ground vehicles
 		extensions = append(extensions, &pb.ExtensionCapability{
 			Namespace:        "husky",
-			Version:          1, // Semver major version
-			SupportedActions: []string{"setDriveMode", "triggerEStop", "clearEStop", "resetFaults"},
-		})
-	case "water":
-		// Marine-specific extensions
-		extensions = append(extensions, &pb.ExtensionCapability{
-			Namespace:        "marine",
 			Version:          1,
-			SupportedActions: []string{"deployAnchor", "retractAnchor", "setRudderAngle", "setThrottle"},
+			SupportedActions: []string{"setDriveMode", "triggerEStop", "releaseEStop", "setBumperSensitivity"},
+		})
+	case "marine":
+		extensions = append(extensions, &pb.ExtensionCapability{
+			Namespace:        "blueboat",
+			Version:          1,
+			SupportedActions: []string{"setThrottle", "setHeading", "deployAnchor", "retractAnchor"},
 		})
 	case "air":
-		// UAV payload extensions
 		extensions = append(extensions, &pb.ExtensionCapability{
-			Namespace:        "uav_payload",
+			Namespace:        "skydio",
 			Version:          1,
-			SupportedActions: []string{"captureImage", "startRecording", "stopRecording", "setGimbalAngle"},
+			SupportedActions: []string{"setFlightMode", "setGimbal", "startRecording", "stopRecording", "takePhoto", "orbit", "track", "stopTracking", "setHome"},
 		})
 	}
 
