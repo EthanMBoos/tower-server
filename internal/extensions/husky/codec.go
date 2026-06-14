@@ -31,18 +31,22 @@ func (c *Codec) Namespace() string { return "husky" }
 func (c *Codec) SupportedVersions() []uint32 { return []uint32{1} }
 
 // DecodeTelemetry converts HuskyTelemetry proto bytes to JSON-serializable map.
+//
+// All output keys are flat primitives. The proto uses a BumperContacts sub-message
+// for semantic grouping, but we flatten it here so the UI's extensionFields()
+// renderer — which only handles primitive leaf values — can display every field
+// without special-casing nested maps. Schema stays idiomatic; adaptation happens
+// at this codec boundary.
 func (c *Codec) DecodeTelemetry(version uint32, data []byte) (map[string]any, error) {
 	if version != 1 {
 		return nil, fmt.Errorf("unsupported husky telemetry version: %d", version)
 	}
 
-	// Unmarshal the proto
 	var msg HuskyTelemetry
 	if err := proto.Unmarshal(data, &msg); err != nil {
 		return nil, fmt.Errorf("unmarshal husky telemetry: %w", err)
 	}
 
-	// Convert to JSON-friendly map
 	result := map[string]any{
 		"driveMode":       driveModeToString(msg.DriveMode),
 		"batteryVoltage":  msg.BatteryVoltage,
@@ -53,14 +57,11 @@ func (c *Codec) DecodeTelemetry(version uint32, data []byte) (map[string]any, er
 		"estopEngaged":    msg.EstopEngaged,
 	}
 
-	// Nested bumper contacts
 	if msg.BumperContacts != nil {
-		result["bumperContacts"] = map[string]any{
-			"frontLeft":  msg.BumperContacts.FrontLeft,
-			"frontRight": msg.BumperContacts.FrontRight,
-			"rearLeft":   msg.BumperContacts.RearLeft,
-			"rearRight":  msg.BumperContacts.RearRight,
-		}
+		result["bumperFrontLeft"]  = msg.BumperContacts.FrontLeft
+		result["bumperFrontRight"] = msg.BumperContacts.FrontRight
+		result["bumperRearLeft"]   = msg.BumperContacts.RearLeft
+		result["bumperRearRight"]  = msg.BumperContacts.RearRight
 	}
 
 	return result, nil

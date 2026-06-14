@@ -37,6 +37,9 @@ func (c *Codec) DecodeTelemetry(version uint32, data []byte) (map[string]any, er
 	if err := proto.Unmarshal(data, &msg); err != nil {
 		return nil, fmt.Errorf("unmarshal blueboat telemetry: %w", err)
 	}
+	// All output keys are flat primitives — see husky codec for the full rationale.
+	// BatteryState and ThrusterStatus sub-messages are flattened with a prefix.
+	// DockLocation (just lat/lng) is omitted — not useful in the text detail view.
 	result := map[string]any{
 		"navMode":         navModeToString(msg.NavMode),
 		"waterDepthM":     msg.WaterDepthM,
@@ -46,30 +49,25 @@ func (c *Codec) DecodeTelemetry(version uint32, data []byte) (map[string]any, er
 		"rangeRemainingM": msg.RangeRemainingM,
 		"windSpeedMs":     msg.WindSpeedMs,
 	}
+
 	if msg.Battery != nil {
-		result["battery"] = map[string]any{
-			"voltage":    msg.Battery.Voltage,
-			"percentage": msg.Battery.Percentage,
-			"tempC":      msg.Battery.TempC,
-			"cycles":     msg.Battery.Cycles,
-		}
+		result["batteryVoltage"] = msg.Battery.Voltage
+		result["batteryTempC"]   = msg.Battery.TempC
+		result["batteryCycles"]  = msg.Battery.Cycles
+		// batteryPercentage omitted — base VehicleTelemetry.battery_pct is the source of truth
 	}
+
 	if msg.Thrusters != nil {
-		result["thrusters"] = map[string]any{
-			"leftRpm":    msg.Thrusters.LeftRpm,
-			"rightRpm":   msg.Thrusters.RightRpm,
-			"leftTempC":  msg.Thrusters.LeftTempC,
-			"rightTempC": msg.Thrusters.RightTempC,
-			"leftFault":  msg.Thrusters.LeftFault,
-			"rightFault": msg.Thrusters.RightFault,
-		}
+		result["thrusterLeftRpm"]    = msg.Thrusters.LeftRpm
+		result["thrusterRightRpm"]   = msg.Thrusters.RightRpm
+		result["thrusterLeftTempC"]  = msg.Thrusters.LeftTempC
+		result["thrusterRightTempC"] = msg.Thrusters.RightTempC
+		result["thrusterLeftFault"]  = msg.Thrusters.LeftFault
+		result["thrusterRightFault"] = msg.Thrusters.RightFault
 	}
-	if msg.Dock != nil {
-		result["dock"] = map[string]any{
-			"lat": msg.Dock.Latitude,
-			"lng": msg.Dock.Longitude,
-		}
-	}
+
+	// DockLocation omitted — lat/lng pairs aren't surfaced in the fleet detail view
+
 	return result, nil
 }
 

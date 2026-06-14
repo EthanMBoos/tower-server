@@ -20,6 +20,11 @@ type Codec interface {
 	SupportedVersions() []uint32
 
 	// DecodeTelemetry converts versioned proto bytes to a JSON-serializable map.
+	// All values MUST be primitive leaf types (bool, string, numeric). Nested maps
+	// and slices are silently dropped by the UI renderer (extensionFields in FleetPanel)
+	// which calls formatExtValue — a function that returns null for anything non-primitive.
+	// Flatten sub-messages with a key prefix (e.g., "gimbalPitchDeg") rather than
+	// emitting nested structures. See husky codec for the canonical example and rationale.
 	// Called by translate.go for each extension in an incoming telemetry frame.
 	DecodeTelemetry(version uint32, data []byte) (map[string]any, error)
 

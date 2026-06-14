@@ -30,6 +30,13 @@ func (c *Codec) Namespace() string           { return "skydio" }
 func (c *Codec) SupportedVersions() []uint32 { return []uint32{1} }
 
 // DecodeTelemetry converts SkydioTelemetry proto bytes to JSON-serializable map.
+//
+// All output keys are flat primitives — see husky codec for the full rationale.
+// Sub-messages (GimbalState, ObstacleAvoidance, RecordingState, TrackingTarget)
+// are flattened with a prefix rather than emitted as nested maps.
+// motor_temps_c is a repeated field (slice) and non-primitive — omitted for now.
+// HomeLocation (just lat/lng) is omitted — coordinate pairs aren't useful
+// in the fleet panel's text-based detail view.
 func (c *Codec) DecodeTelemetry(version uint32, data []byte) (map[string]any, error) {
 	if version != 1 {
 		return nil, fmt.Errorf("unsupported skydio telemetry version: %d", version)
@@ -49,65 +56,39 @@ func (c *Codec) DecodeTelemetry(version uint32, data []byte) (map[string]any, er
 		"remainingFlightTimeSec": msg.RemainingFlightTimeSec,
 	}
 
-	// Motor temperatures
-	if len(msg.MotorTempsC) > 0 {
-		temps := make([]float64, len(msg.MotorTempsC))
-		for i, t := range msg.MotorTempsC {
-			temps[i] = float64(t)
-		}
-		result["motorTempsC"] = temps
+if msg.Gimbal != nil {
+		result["gimbalPitchDeg"] = msg.Gimbal.PitchDeg
+		result["gimbalYawDeg"]   = msg.Gimbal.YawDeg
+		result["gimbalRollDeg"]  = msg.Gimbal.RollDeg
 	}
 
-	// Gimbal state
-	if msg.Gimbal != nil {
-		result["gimbal"] = map[string]any{
-			"pitchDeg": msg.Gimbal.PitchDeg,
-			"yawDeg":   msg.Gimbal.YawDeg,
-			"rollDeg":  msg.Gimbal.RollDeg,
-		}
-	}
-
-	// Obstacle avoidance
 	if msg.ObstacleAvoidance != nil {
-		result["obstacleAvoidance"] = map[string]any{
-			"enabled":          msg.ObstacleAvoidance.Enabled,
-			"frontClear":       msg.ObstacleAvoidance.FrontClear,
-			"rearClear":        msg.ObstacleAvoidance.RearClear,
-			"leftClear":        msg.ObstacleAvoidance.LeftClear,
-			"rightClear":       msg.ObstacleAvoidance.RightClear,
-			"aboveClear":       msg.ObstacleAvoidance.AboveClear,
-			"belowClear":       msg.ObstacleAvoidance.BelowClear,
-			"closestObstacleM": msg.ObstacleAvoidance.ClosestObstacleM,
-		}
+		result["oaEnabled"]          = msg.ObstacleAvoidance.Enabled
+		result["oaFrontClear"]       = msg.ObstacleAvoidance.FrontClear
+		result["oaRearClear"]        = msg.ObstacleAvoidance.RearClear
+		result["oaLeftClear"]        = msg.ObstacleAvoidance.LeftClear
+		result["oaRightClear"]       = msg.ObstacleAvoidance.RightClear
+		result["oaAboveClear"]       = msg.ObstacleAvoidance.AboveClear
+		result["oaBelowClear"]       = msg.ObstacleAvoidance.BelowClear
+		result["oaClosestObstacleM"] = msg.ObstacleAvoidance.ClosestObstacleM
 	}
 
-	// Recording state
 	if msg.Recording != nil {
-		result["recording"] = map[string]any{
-			"isRecording":          msg.Recording.IsRecording,
-			"recordingDurationSec": msg.Recording.RecordingDurationSec,
-			"storageRemainingMb":   msg.Recording.StorageRemainingMb,
-			"currentResolution":    msg.Recording.CurrentResolution,
-		}
+		result["isRecording"]         = msg.Recording.IsRecording
+		result["recordingDurationSec"] = msg.Recording.RecordingDurationSec
+		result["storageRemainingMb"]  = msg.Recording.StorageRemainingMb
+		result["recordingResolution"] = msg.Recording.CurrentResolution
 	}
 
-	// Home location
-	if msg.Home != nil {
-		result["home"] = map[string]any{
-			"lat":    msg.Home.Latitude,
-			"lng":    msg.Home.Longitude,
-			"altMsl": msg.Home.AltitudeMslM,
-		}
-	}
+	// HomeLocation omitted — lat/lng pairs aren't surfaced in the fleet detail view
 
-	// Tracking target
-	if msg.TrackingTarget != nil && msg.TrackingTarget.Active {
-		result["trackingTarget"] = map[string]any{
-			"active":     msg.TrackingTarget.Active,
-			"confidence": msg.TrackingTarget.Confidence,
-			"distanceM":  msg.TrackingTarget.DistanceM,
-			"bearingDeg": msg.TrackingTarget.BearingDeg,
-			"targetType": msg.TrackingTarget.TargetType,
+	if msg.TrackingTarget != nil {
+		result["trackingActive"] = msg.TrackingTarget.Active
+		if msg.TrackingTarget.Active {
+			result["trackingConfidence"] = msg.TrackingTarget.Confidence
+			result["trackingDistanceM"]  = msg.TrackingTarget.DistanceM
+			result["trackingBearingDeg"] = msg.TrackingTarget.BearingDeg
+			result["trackingTargetType"] = msg.TrackingTarget.TargetType
 		}
 	}
 
