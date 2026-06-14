@@ -295,7 +295,6 @@ func (s *vehicleState) toProto(vid string) *pb.VehicleMessage {
 
 	// Copy values for pointer fields
 	batteryPct := s.batteryPct
-	signalStrength := s.signalBars
 
 	telemetry := &pb.VehicleTelemetry{
 		VehicleId:   vid,
@@ -305,12 +304,11 @@ func (s *vehicleState) toProto(vid string) *pb.VehicleMessage {
 			Longitude:    s.lng,
 			AltitudeMslM: float32(s.alt),
 		},
-		SpeedMs:        float32(s.speed),
-		HeadingDeg:     float32(s.heading),
-		Environment:    s.environment,
-		SequenceNum:    s.seq,
-		BatteryPct:     &batteryPct,
-		SignalStrength: &signalStrength,
+		SpeedMs:     float32(s.speed),
+		HeadingDeg:  float32(s.heading),
+		Environment: s.environment,
+		SequenceNum: s.seq,
+		BatteryPct:  &batteryPct,
 	}
 
 	return &pb.VehicleMessage{
