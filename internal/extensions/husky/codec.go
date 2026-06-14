@@ -67,6 +67,22 @@ func (c *Codec) DecodeTelemetry(version uint32, data []byte) (map[string]any, er
 	return result, nil
 }
 
+func (c *Codec) SampleTelemetry() ([]byte, error) {
+	return proto.Marshal(&HuskyTelemetry{
+		DriveMode:       DriveMode_DRIVE_MODE_AUTONOMOUS,
+		BatteryVoltage:  25.6,
+		MotorTempLeftC:  45.2,
+		MotorTempRightC: 47.8,
+		OdometryLeftM:   142.3,
+		OdometryRightM:  141.9,
+		EstopEngaged:    false,
+		BumperContacts: &BumperContacts{
+			FrontLeft: false, FrontRight: false,
+			RearLeft: false, RearRight: false,
+		},
+	})
+}
+
 // EncodeCommand converts a UI command payload to proto bytes.
 func (c *Codec) EncodeCommand(action string, payload map[string]any) (uint32, []byte, error) {
 	switch action {

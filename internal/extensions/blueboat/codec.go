@@ -71,6 +71,28 @@ func (c *Codec) DecodeTelemetry(version uint32, data []byte) (map[string]any, er
 	return result, nil
 }
 
+func (c *Codec) SampleTelemetry() ([]byte, error) {
+	return proto.Marshal(&BlueboatTelemetry{
+		NavMode:         NavMode_NAV_MODE_WAYPOINT,
+		WaterDepthM:     12.5,
+		GpsFixQuality:   4,
+		Satellites:      12,
+		CurrentDrawA:    8.5,
+		RangeRemainingM: 2500.0,
+		WindSpeedMs:     3.2,
+		Battery: &BatteryState{
+			Voltage: 25.2,
+			TempC:   28.5,
+			Cycles:  42,
+		},
+		Thrusters: &ThrusterStatus{
+			LeftRpm: 1200.0, RightRpm: 1200.0,
+			LeftTempC: 35.0, RightTempC: 36.0,
+			LeftFault: false, RightFault: false,
+		},
+	})
+}
+
 func (c *Codec) EncodeCommand(action string, payload map[string]any) (uint32, []byte, error) {
 	switch action {
 	case "setNavMode":

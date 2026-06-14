@@ -4,6 +4,13 @@ package extensions
 // Each extension (e.g., "husky") registers a Codec via init() to handle
 // telemetry decoding and command encoding for that namespace.
 
+// Sampler is an optional extension to Codec. Implement it to provide realistic
+// sample telemetry bytes for the testsender — keeps the testsender generic and
+// platform-agnostic while each codec ships its own demo data alongside its decode logic.
+type Sampler interface {
+	SampleTelemetry() ([]byte, error)
+}
+
 // Codec handles encoding/decoding for a specific extension namespace.
 // Register a Codec via Register() in your extension package's init() function.
 //

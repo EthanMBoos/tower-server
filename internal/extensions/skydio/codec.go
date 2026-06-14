@@ -95,6 +95,31 @@ if msg.Gimbal != nil {
 	return result, nil
 }
 
+func (c *Codec) SampleTelemetry() ([]byte, error) {
+	return proto.Marshal(&SkydioTelemetry{
+		FlightMode:             FlightMode_FLIGHT_MODE_HOVER,
+		GpsFixQuality:          4,
+		Satellites:             14,
+		WindSpeedMs:            2.5,
+		WindDirectionDeg:       270.0,
+		RemainingFlightTimeSec: 1140,
+		Gimbal:                 &GimbalState{PitchDeg: -30.0, YawDeg: 0.0, RollDeg: 0.0},
+		ObstacleAvoidance: &ObstacleAvoidance{
+			Enabled: true,
+			FrontClear: true, RearClear: true, LeftClear: true,
+			RightClear: true, AboveClear: true, BelowClear: true,
+			ClosestObstacleM: 8.3,
+		},
+		Recording: &RecordingState{
+			IsRecording:          true,
+			RecordingDurationSec: 127,
+			StorageRemainingMb:   24576,
+			CurrentResolution:    "4K30",
+		},
+		TrackingTarget: &TrackingTarget{Active: false},
+	})
+}
+
 // EncodeCommand converts a UI command payload to proto bytes.
 func (c *Codec) EncodeCommand(action string, payload map[string]any) (uint32, []byte, error) {
 	switch action {

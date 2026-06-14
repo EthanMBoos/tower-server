@@ -23,6 +23,10 @@ import (
 	"time"
 
 	pb "github.com/EthanMBoos/tower-server/api/proto"
+	"github.com/EthanMBoos/tower-server/internal/extensions"
+	_ "github.com/EthanMBoos/tower-server/internal/extensions/blueboat"
+	_ "github.com/EthanMBoos/tower-server/internal/extensions/husky"
+	_ "github.com/EthanMBoos/tower-server/internal/extensions/skydio"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -309,6 +313,26 @@ func (s *vehicleState) toProto(vid string) *pb.VehicleMessage {
 		Environment: s.environment,
 		SequenceNum: s.seq,
 		BatteryPct:  &batteryPct,
+	}
+
+	// Attach extension telemetry from the codec registered for this environment.
+	// The namespace mapping is configuration — the testsender never constructs
+	// platform-specific protos directly; each codec owns its own sample data.
+	envNamespace := map[pb.VehicleEnvironment]string{
+		pb.VehicleEnvironment_ENV_GROUND: "husky",
+		pb.VehicleEnvironment_ENV_AIR:    "skydio",
+		pb.VehicleEnvironment_ENV_MARINE: "blueboat",
+	}
+	if ns, ok := envNamespace[s.environment]; ok {
+		if codec := extensions.Get(ns); codec != nil {
+			if sampler, ok := codec.(extensions.Sampler); ok {
+				if payload, err := sampler.SampleTelemetry(); err == nil {
+					telemetry.Extensions = map[string]*pb.ExtensionData{
+						ns: {Version: 1, Payload: payload},
+					}
+				}
+			}
+		}
 	}
 
 	return &pb.VehicleMessage{
