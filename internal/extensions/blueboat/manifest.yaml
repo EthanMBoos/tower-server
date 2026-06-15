@@ -14,39 +14,43 @@ version: "1.0"
 displayName: "BlueBoat USV Controls"
 
 commands:
-  - command: setNavMode
-    label: "Set Nav Mode"
-    description: "Change navigation behavior"
-    targetMode: both
+  - command: setThrottle
+    label: "Set Throttle"
+    description: "Set thruster throttle level"
     parameters:
-      - name: mode
-        label: "Navigation Mode"
-        type: select
-        required: true
-        options:
-          - value: manual
-            label: "Manual"
-          - value: hold
-            label: "Station Hold"
-          - value: waypoint
-            label: "Waypoint"
-          - value: survey
-            label: "Survey Pattern"
-          - value: loiter
-            label: "Loiter"
-          - value: returnHome
-            label: "Return to Dock"
+      - name: throttle
+        label: "Throttle"
+        type: number
+        min: -1
+        max: 1
+        default: 0
+
+  - command: setHeading
+    label: "Set Heading"
+    description: "Set target heading"
+    parameters:
+      - name: heading
+        label: "Heading (°)"
+        type: number
+        min: 0
+        max: 360
+        default: 0
+
+  - command: deployAnchor
+    label: "Deploy Anchor"
+    description: "Deploy the anchor to hold position"
+    confirmation: true
+
+  - command: retractAnchor
+    label: "Retract Anchor"
+    description: "Retract the anchor to resume movement"
+    confirmation: true
 
   - command: startSurvey
     label: "Start Survey"
-    description: "Begin autonomous survey pattern over a search zone"
+    description: "Begin autonomous survey pattern"
     confirmation: true
     parameters:
-      - name: zoneId
-        label: "Search Zone"
-        type: zone
-        required: true
-        description: "Select a search zone from the map"
       - name: laneSpacingM
         label: "Lane Spacing (m)"
         type: number
@@ -60,25 +64,23 @@ commands:
         max: 3
         default: 1
 
-  - command: setDock
-    label: "Set Dock Location"
-    description: "Update the home/dock return location"
+  - command: setNavMode
+    label: "Set Nav Mode"
+    description: "Change navigation behavior"
     parameters:
-      - name: dockLocation
-        label: "Dock"
-        type: coordinates
+      - name: mode
+        label: "Navigation Mode"
+        type: select
         required: true
-        description: "Click on map to set dock location"
-
-  - command: sendToZone
-    label: "Send to Zone"
-    description: "Navigate to a designated zone on the map"
-    targetMode: both
-    parameters:
-      - name: zoneId
-        label: "Zone"
-        type: zone
-        required: true
+        options:
+          - value: manual
+            label: "Manual"
+          - value: hold
+            label: "Station Hold"
+          - value: waypoint
+            label: "Waypoint"
+          - value: loiter
+            label: "Loiter"
 
 # Telemetry fields (for future dynamic panel rendering)
 telemetryFields:

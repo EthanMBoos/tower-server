@@ -54,16 +54,14 @@ commands:
     description: "Clear software E-Stop (hardware E-Stop must be cleared manually)"
     confirmation: true
 
-  - command: sendToZone
-    label: "Send to Zone"
-    description: "Navigate to a designated zone on the map"
-    targetMode: both  # Send one or all vehicles to a zone
-    parameters:
-      - name: zoneId
-        label: "Zone"
-        type: zone
-        required: true
-        description: "Select a zone from the map"
+  - command: calibrateIMU
+    label: "Calibrate IMU"
+    description: "Run inertial measurement unit calibration sequence"
+    confirmation: true
+
+  - command: resetOdometry
+    label: "Reset Odometry"
+    description: "Zero out wheel encoder odometry"
 
 # Telemetry fields (for future dynamic panel rendering)
 telemetryFields:

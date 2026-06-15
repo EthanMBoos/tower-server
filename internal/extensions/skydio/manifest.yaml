@@ -37,13 +37,13 @@ commands:
     label: "Gimbal Control"
     description: "Adjust camera gimbal pitch and yaw"
     parameters:
-      - name: pitch
+      - name: pitchDeg
         label: "Pitch"
         type: number
         min: -90
         max: 30
         default: 0
-      - name: yaw
+      - name: yawDeg
         label: "Yaw"
         type: number
         min: -180
@@ -89,23 +89,37 @@ commands:
     label: "Stop Tracking"
     description: "End autonomous tracking"
 
-  - command: sendToZone
-    label: "Send to Zone"
-    description: "Fly to a designated zone on the map"
-    targetMode: both
+  - command: setHome
+    label: "Set Home"
+    description: "Update the home/return location"
     parameters:
-      - name: zoneId
-        label: "Zone"
-        type: zone
-        required: true
-        description: "Select a zone from the map"
-      - name: altitude
-        label: "Altitude (m)"
+      - name: lat
+        label: "Latitude"
         type: number
-        min: 10
-        max: 120
-        default: 30
-        description: "Flight altitude above ground"
+        required: true
+      - name: lng
+        label: "Longitude"
+        type: number
+        required: true
+
+  - command: cableCam
+    label: "Cable Cam"
+    description: "Fly a repeatable path between two points"
+    confirmation: true
+
+  - command: setObstacleAvoidance
+    label: "Obstacle Avoidance"
+    description: "Enable or disable obstacle avoidance"
+    parameters:
+      - name: enabled
+        label: "Enabled"
+        type: select
+        options:
+          - value: "true"
+            label: "On"
+          - value: "false"
+            label: "Off"
+        default: "true"
 
 # Telemetry fields (for future dynamic panel rendering)
 telemetryFields:
