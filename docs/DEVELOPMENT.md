@@ -181,6 +181,4 @@ The generated file is `api/proto/pidgin.pb.go` — commit it alongside the `.pro
 
 ## Connecting the Tower
 
-> **STATUS: NOT YET IMPLEMENTED** — Server/UI integration is in progress. This section will be updated once the connection is wired up.
-
-The UI lives in the sibling `Tower/` repo and will connect to the server WebSocket. See the UI's `DEVELOPMENT.md` for its current setup steps.
+The UI lives in the sibling `Tower/` repo and connects to the server WebSocket at `ws://localhost:9000`. Start the server first, then run the UI with `npm run dev`. See the Tower repo's `README.md` for its setup steps.

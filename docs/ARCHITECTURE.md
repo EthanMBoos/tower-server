@@ -1,7 +1,6 @@
 # Tower Platform Architecture
 
 > **Scope**: System-level design for the Tower platform — two repositories, one operator experience.  
-> For server build phases see [SERVER_IMPLEMENTATION.md](SERVER_IMPLEMENTATION.md).  
 > For extension codec/manifest specifics see [EXTENSIBILITY.md](EXTENSIBILITY.md).  
 > For wire-format behavioral contracts see [PROTOCOL.md](PROTOCOL.md).  
 > For terminology definitions see [GLOSSARY.md](GLOSSARY.md).
@@ -35,11 +34,11 @@ Tower is a **platform**, not an application. It must support different robotics 
                                    │ imported at compile time
                                    ▼
 ┌──────────────┐    WebSocket     ┌──────────────┐     UDP multicast     ┌──────────────┐
-│  Tower   │◀────────────────▶│  Go Server  │◀─────────────────────▶│ Radio Node   │
-│  (Electron)  │   localhost:9000 │              │    239.255.0.1:14550  │ (on vehicle) │
+│  Tower       │◀────────────────▶│  Go Server   │◀─────────────────────▶│ Radio Node   │
+│  (React PWA) │   localhost:9000 │              │    239.255.0.1:14550  │ (on vehicle) │
 └──────────────┘                  └──────────────┘    239.255.0.2:14551  └──────────────┘
   Manifest-driven rendering         Codec registry                         Vehicle firmware
-  Dynamic CommandPanel buttons       Proto ↔ JSON translation
+  Dynamic command flyout buttons     Proto ↔ JSON translation
   Extension state in vehicleStore   Command routing + rate limiting
 ```
 
@@ -64,11 +63,9 @@ Tower is a **platform**, not an application. It must support different robotics 
 | Repo | Language | Role |
 |------|----------|------|
 | `tower-server` | Go | Bridges vehicles to UI; owns the wire protocol and extension registry |
-| `Tower` | TypeScript/Electron | Operator UI; owns rendering, command input, LLM integration |
+| `Tower` | TypeScript/React (PWA) | Operator UI; owns rendering, command input, LLM integration |
 
 The server has no dependency on the UI. The UI is a pure client — it never speaks directly to vehicles.
-
-> For a package-by-package breakdown of `internal/` see [PACKAGE_MAP.md](PACKAGE_MAP.md).
 
 ---
 
@@ -189,3 +186,12 @@ tower-server/
 | Unknown extensions | Fail with `_error` field, don't drop telemetry | Graceful degradation; clear integration signal |
 | Timestamp authority | Server clock (`gts`) is authoritative; vehicle `ts` is untrusted | Vehicles lack RTC/NTP; clock skew is common |
 | Command ordering guarantee | WebSocket in-order delivery; no retransmit | Commands are idempotent by contract |
+
+---
+
+## Observability (Not Implemented)
+
+No structured observability yet. Key gaps:
+- **UDP drop counters** — under load (100Hz × 10 vehicles) the kernel silently drops packets; the server has no visibility into this
+- **Structured logging** — current logs are unstructured with no correlation IDs across the vehicle→server→UI path
+- **Prometheus metrics** — no `/metrics` endpoint; no Grafana dashboard

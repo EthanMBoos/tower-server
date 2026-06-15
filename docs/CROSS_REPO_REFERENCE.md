@@ -10,7 +10,7 @@
 | Repo | Language | Purpose |
 |------|----------|---------|
 | `tower-server` | Go | Protocol bridge: vehicles ↔ UI. Owns wire format. |
-| `Tower` | TypeScript/Electron | Operator UI. Pure WebSocket client. |
+| `Tower` | TypeScript/React (PWA) | Operator UI. Pure WebSocket client. |
 
 ---
 
@@ -22,7 +22,7 @@
 | `internal/protocol/frame.go` | `src/types/index.ts` | **SOURCE OF TRUTH** for JSON types |
 | `internal/protocol/translate.go` | — | Proto→JSON conversion |
 | `internal/protocol/builders.go` | — | Server-originated frames (welcome, error) |
-| `internal/websocket/server.go` | `src/main/telemetryBridge.ts` | WebSocket endpoints |
+| `internal/websocket/server.go` | `src/renderer/comms/connection.ts` | WebSocket client |
 | `internal/websocket/client.go` | — | Client connection handling |
 | `internal/registry/registry.go` | `src/renderer/stores/vehicleStore.ts` | Fleet state management |
 | `internal/extensions/*.go` | `src/types/index.ts` (ExtensionManifest) | Extension codec + manifest |
@@ -54,21 +54,21 @@
 4. Server broadcasts to all clients
    └─▶ internal/websocket/server.go:Broadcast()
 
-5. UI main process receives JSON, buffers, batches
-   └─▶ src/main/telemetryBridge.ts (NOT YET IMPLEMENTED)
+5. UI receives JSON, batches by animation frame
+   └─▶ src/renderer/comms/connection.ts
 
 6. UI renderer updates store
-   └─▶ src/renderer/stores/vehicleStore.ts:updateInstance()
+   └─▶ src/renderer/stores/vehicleStore.ts:applyTelemetry()
 ```
 
 ### Outbound (UI → Vehicle)
 
 ```
 1. Operator clicks command button
-   └─▶ src/renderer/components/ (CommandPanel)
+   └─▶ src/renderer/components/ (Fleet panel flyout)
 
 2. UI sends JSON command frame
-   └─▶ src/main/telemetryBridge.ts (NOT YET IMPLEMENTED)
+   └─▶ src/renderer/comms/connection.ts
 
 3. Server validates, rate-limits, converts to protobuf
    └─▶ internal/command/router.go:Route()
@@ -85,23 +85,28 @@
 
 | Go (`frame.go`) | TypeScript (`types/index.ts`) | JSON Key |
 |-----------------|-------------------------------|----------|
-| `Frame.ProtocolVersion` | `ServerFrame.protocolVersion` | `protocolVersion` |
-| `Frame.Type` | `ServerFrame.type` | `type` |
-| `Frame.VehicleID` | `ServerFrame.vehicleId` | `vehicleId` |
-| `Frame.TimestampMs` | `ServerFrame.timestampMs` | `timestampMs` |
-| `Frame.ServerTimestampMs` | `ServerFrame.serverTimestampMs` | `serverTimestampMs` |
-| `Frame.Data` | `ServerFrame.data` | `data` |
+| `Frame.ProtocolVersion` | `ProtocolFrame.protocolVersion` | `protocolVersion` |
+| `Frame.Type` | `ProtocolFrame.type` | `type` |
+| `Frame.VehicleID` | `ProtocolFrame.vehicleId` | `vehicleId` |
+| `Frame.TimestampMs` | `ProtocolFrame.timestampMs` | `timestampMs` |
+| `Frame.ServerTimestampMs` | `ProtocolFrame.serverTimestampMs` | `serverTimestampMs` |
+| `Frame.Data` | `ProtocolFrame.data` | `data` |
 
 ### Telemetry Payload
 
-| Go | TypeScript | JSON Key |
-|----|------------|----------|
-| `TelemetryPayload.Location.Lat` | `location.lat` | `data.location.lat` |
-| `TelemetryPayload.Location.Lng` | `location.lng` | `data.location.lng` |
-| `TelemetryPayload.Speed` | `speed` | `data.speed` |
-| `TelemetryPayload.Heading` | `heading` | `data.heading` |
-| `TelemetryPayload.Seq` | `seq` | `data.seq` |
-| `TelemetryPayload.BatteryPercent` | `batteryPct` | `data.batteryPct` |
+| Go | TypeScript | JSON Key | Notes |
+|----|------------|----------|-------|
+| `TelemetryPayload.Location.Lat` | `location.lat` | `data.location.lat` | |
+| `TelemetryPayload.Location.Lng` | `location.lng` | `data.location.lng` | |
+| `TelemetryPayload.Location.AltMsl` | `location.altMsl` | `data.location.altMsl` | Optional; ground vehicles may omit |
+| `TelemetryPayload.Speed` | `speed` | `data.speed` | m/s |
+| `TelemetryPayload.Heading` | `heading` | `data.heading` | degrees [0, 360) |
+| `TelemetryPayload.Environment` | `environment` | `data.environment` | `"air"` \| `"ground"` \| `"marine"` \| `"unknown"` |
+| `TelemetryPayload.Seq` | `seq` | `data.seq` | Monotonic uint32, wraps; for ordering only |
+| `TelemetryPayload.BatteryPercent` | `batteryPercent` | `data.batteryPercent` | Optional/null if unknown |
+| `TelemetryPayload.SignalStrength` | `signalStrength` | `data.signalStrength` | 0-5 bars, optional/null if unknown |
+| `TelemetryPayload.SupportedExtensions` | `supportedExtensions` | `data.supportedExtensions` | Namespaces this vehicle has active |
+| `TelemetryPayload.Extensions` | `extensions` | `data.extensions` | Decoded extension telemetry by namespace |
 
 ### Status Values
 
@@ -129,7 +134,8 @@
 | `heartbeat` | Vehicle→UI | `TypeHeartbeat` | Yes |
 | `status` | Server→UI | `TypeStatus` | No |
 | `command_ack` | Vehicle→UI | `TypeCommandAck` | No |
-| `alert` | Vehicle→UI | `TypeAlert` | No |
+| `fleet_status` | Server→UI | `TypeFleetStatus` | No |
+| `alert` | Server→UI | `TypeAlert` | No |
 | `welcome` | Server→UI | `TypeWelcome` | No |
 | `error` | Server→UI | `TypeError` | No |
 | `hello` | UI→Server | `TypeHello` | No |
@@ -179,13 +185,13 @@ testdata/protocol/
 
 ---
 
-## MVP Implementation Gaps
+## Implementation Status
 
 | Component | Status | Location |
 |-----------|--------|----------|
 | Server WebSocket server | ✅ Done | `internal/websocket/` |
 | Server telemetry listener | ✅ Done | `internal/telemetry/` |
 | Server command routing | ✅ Done | `internal/command/` |
-| UI WebSocket client | ❌ Stub only | `src/main/telemetryBridge.ts` |
-| UI preload API | ❌ Stub only | `src/main/preload.ts` |
-| UI telemetry store updates | ❌ Partial | `vehicleStore.ts` |
+| UI WebSocket client | ✅ Done | `src/renderer/comms/connection.ts` |
+| UI telemetry store updates | ✅ Done | `src/renderer/stores/vehicleStore.ts` |
+| UI WebSocket client (Web Worker scale) | ⏳ Planned | See Tower `docs/COMMS_PIPELINE.md` |
