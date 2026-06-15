@@ -45,12 +45,8 @@ func TestCodec_DecodeTelemetry(t *testing.T) {
 	if result["waterDepthM"].(float32) != 5.2 {
 		t.Errorf("waterDepthM: got %v, want 5.2", result["waterDepthM"])
 	}
-	battery, ok := result["battery"].(map[string]any)
-	if !ok {
-		t.Fatalf("battery not a map")
-	}
-	if battery["percentage"].(float32) != 85.0 {
-		t.Errorf("battery.percentage: got %v, want 85.0", battery["percentage"])
+	if result["batteryVoltage"].(float32) != 25.6 {
+		t.Errorf("batteryVoltage: got %v, want 25.6", result["batteryVoltage"])
 	}
 }
 

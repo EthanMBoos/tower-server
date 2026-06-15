@@ -62,20 +62,12 @@ func TestCodec_DecodeTelemetry(t *testing.T) {
 		t.Errorf("gpsFixQuality: got %v, want 4", result["gpsFixQuality"])
 	}
 
-	gimbal, ok := result["gimbal"].(map[string]any)
-	if !ok {
-		t.Fatalf("gimbal not a map")
-	}
-	if gimbal["pitchDeg"].(float32) != -45.0 {
-		t.Errorf("gimbal.pitchDeg: got %v, want -45.0", gimbal["pitchDeg"])
+	if result["gimbalPitchDeg"].(float32) != -45.0 {
+		t.Errorf("gimbalPitchDeg: got %v, want -45.0", result["gimbalPitchDeg"])
 	}
 
-	recording, ok := result["recording"].(map[string]any)
-	if !ok {
-		t.Fatalf("recording not a map")
-	}
-	if recording["isRecording"].(bool) != true {
-		t.Errorf("recording.isRecording: got %v, want true", recording["isRecording"])
+	if result["isRecording"].(bool) != true {
+		t.Errorf("isRecording: got %v, want true", result["isRecording"])
 	}
 }
 

@@ -42,12 +42,8 @@ func TestCodec_DecodeTelemetry(t *testing.T) {
 		t.Errorf("batteryVoltage: got %v, want 25.6", result["batteryVoltage"])
 	}
 
-	bumpers, ok := result["bumperContacts"].(map[string]any)
-	if !ok {
-		t.Fatalf("bumperContacts not a map")
-	}
-	if bumpers["frontLeft"].(bool) != false {
-		t.Errorf("bumperContacts.frontLeft: got %v, want false", bumpers["frontLeft"])
+	if result["bumperFrontLeft"].(bool) != false {
+		t.Errorf("bumperFrontLeft: got %v, want false", result["bumperFrontLeft"])
 	}
 }
 
