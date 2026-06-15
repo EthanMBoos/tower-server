@@ -13,6 +13,16 @@ namespace: skydio
 version: "1.0"
 displayName: "Skydio Drone Controls"
 
+specs:
+  - label: "Max Speed"
+    value: "16 m/s"
+  - label: "Max Flight Time"
+    value: "23 min"
+  - label: "Max Altitude"
+    value: "150 m AGL"
+  - label: "Wind Resistance"
+    value: "15 m/s"
+
 commands:
   - command: setFlightMode
     label: "Set Flight Mode"

@@ -320,11 +320,17 @@ func collectManifests() map[string]protocol.ExtensionManifest {
 				TargetMode:   cmd.TargetMode,
 			}
 		}
+		specs := make([]protocol.ExtensionSpec, len(m.Specs))
+		for i, s := range m.Specs {
+			specs[i] = protocol.ExtensionSpec{Label: s.Label, Value: s.Value}
+		}
 		result[ns] = protocol.ExtensionManifest{
 			Namespace:   m.Namespace,
 			Version:     m.Version,
 			DisplayName: m.DisplayName,
+			Model:       m.Model,
 			Commands:    cmds,
+			Specs:       specs,
 		}
 	}
 	return result

@@ -13,6 +13,16 @@ namespace: blueboat
 version: "1.0"
 displayName: "BlueBoat USV Controls"
 
+specs:
+  - label: "Max Speed"
+    value: "3 m/s"
+  - label: "Endurance"
+    value: "~4 h"
+  - label: "Draft"
+    value: "0.1 m"
+  - label: "Displacement"
+    value: "~5 kg"
+
 commands:
   - command: setThrottle
     label: "Set Throttle"

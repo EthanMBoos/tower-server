@@ -13,6 +13,16 @@ namespace: husky
 version: "1.0"
 displayName: "Husky UGV Controls"
 
+specs:
+  - label: "Max Speed"
+    value: "1.5 m/s"
+  - label: "Payload"
+    value: "75 kg"
+  - label: "Battery"
+    value: "270 Wh"
+  - label: "IP Rating"
+    value: "IP67"
+
 commands:
   - command: setDriveMode
     label: "Set Drive Mode"

@@ -45,7 +45,11 @@ type manifestYAML struct {
 	Namespace   string        `yaml:"namespace"`
 	Version     string        `yaml:"version"`
 	DisplayName string        `yaml:"displayName"`
-	Commands    []commandYAML `yaml:"commands"`
+	// Model is the optional GLB filename in Tower's public/models/ (e.g. "husky.glb").
+	// Omit to use the environment default.
+	Model    string        `yaml:"model"`
+	Commands []commandYAML `yaml:"commands"`
+	Specs    []specYAML    `yaml:"specs"`
 }
 
 type commandYAML struct {
@@ -72,6 +76,11 @@ type parameterYAML struct {
 type optionYAML struct {
 	Value string `yaml:"value"`
 	Label string `yaml:"label"`
+}
+
+type specYAML struct {
+	Label string `yaml:"label"`
+	Value string `yaml:"value"`
 }
 
 // validateManifest checks the manifest for common mistakes.
@@ -201,6 +210,7 @@ func LoadManifest(yamlPath string) error {
 		Namespace:   m.Namespace,
 		Version:     m.Version,
 		DisplayName: m.DisplayName,
+		Model:       m.Model,
 		Commands:    make([]CommandDefinition, len(m.Commands)),
 	}
 
@@ -234,6 +244,11 @@ func LoadManifest(yamlPath string) error {
 				}
 			}
 		}
+	}
+
+	manifest.Specs = make([]SpecEntry, len(m.Specs))
+	for i, s := range m.Specs {
+		manifest.Specs[i] = SpecEntry{Label: s.Label, Value: s.Value}
 	}
 
 	RegisterManifest(manifest)

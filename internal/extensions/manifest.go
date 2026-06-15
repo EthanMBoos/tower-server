@@ -16,7 +16,14 @@ type Manifest struct {
 	Namespace   string
 	Version     string
 	DisplayName string
-	Commands    []CommandDefinition
+	// Model is the filename of the 3D GLB asset in Tower's public/models/ directory
+	// (e.g. "husky.glb"). Empty string means the UI falls back to the environment
+	// default (drone.glb for air, ground-robot.glb for ground, fishing_boat.glb
+	// for marine). The field is optional — omit it unless your platform needs a
+	// distinct model that already exists in Tower/public/models/.
+	Model    string
+	Commands []CommandDefinition
+	Specs    []SpecEntry
 }
 
 // CommandDefinition describes a command within an extension.
@@ -46,6 +53,12 @@ type CommandParameter struct {
 type ParameterOption struct {
 	Value string
 	Label string
+}
+
+// SpecEntry is a single platform spec row shown in the Fleet panel.
+type SpecEntry struct {
+	Label string
+	Value string
 }
 
 var (

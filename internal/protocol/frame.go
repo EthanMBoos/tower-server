@@ -365,9 +365,13 @@ type AvailableExtension struct {
 // Sent to UI so it can render command buttons without hardcoding.
 type ExtensionManifest struct {
 	Namespace   string                       `json:"namespace"`
-	Version     string                       `json:"version"`     // Semantic version (e.g., "1.0.0")
-	DisplayName string                       `json:"displayName"` // Human-readable name
-	Commands    []ExtensionCommandDefinition `json:"commands"`    // Available commands
+	Version     string                       `json:"version"`           // Semantic version (e.g., "1.0.0")
+	DisplayName string                       `json:"displayName"`       // Human-readable name
+	Commands    []ExtensionCommandDefinition `json:"commands"`          // Available commands
+	Specs       []ExtensionSpec              `json:"specs,omitempty"`   // Platform spec rows for Fleet panel
+	// Model is the GLB filename in Tower's public/models/ (e.g. "husky.glb").
+	// Omitted when empty — UI falls back to the environment-default model.
+	Model string `json:"model,omitempty"`
 }
 
 // ExtensionCommandDefinition describes a command within an extension.
@@ -398,6 +402,12 @@ type CommandParameter struct {
 type ParameterOption struct {
 	Value string `json:"value"` // Value sent in payload
 	Label string `json:"label"` // Display label in UI
+}
+
+// ExtensionSpec is a single platform spec row shown in the Fleet panel.
+type ExtensionSpec struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 // Parameter types for CommandParameter.Type
