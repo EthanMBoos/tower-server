@@ -63,27 +63,3 @@ commands:
     label: "Reset Odometry"
     description: "Zero out wheel encoder odometry"
 
-# Telemetry fields (for future dynamic panel rendering)
-telemetryFields:
-  - name: driveMode
-    label: "Drive Mode"
-    type: string
-
-  - name: batteryVoltage
-    label: "Battery Voltage"
-    type: number
-    unit: "V"
-
-  - name: motorTempLeftC
-    label: "Left Motor Temp"
-    type: number
-    unit: "°C"
-
-  - name: motorTempRightC
-    label: "Right Motor Temp"
-    type: number
-    unit: "°C"
-
-  - name: estopEngaged
-    label: "E-Stop"
-    type: boolean

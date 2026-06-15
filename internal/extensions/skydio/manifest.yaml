@@ -121,26 +121,3 @@ commands:
             label: "Off"
         default: "true"
 
-# Telemetry fields (for future dynamic panel rendering)
-telemetryFields:
-  - name: flightMode
-    label: "Flight Mode"
-    type: string
-
-  - name: gpsFixQuality
-    label: "GPS Quality"
-    type: number
-
-  - name: satellites
-    label: "Satellites"
-    type: number
-
-  - name: windSpeedMs
-    label: "Wind Speed"
-    type: number
-    unit: "m/s"
-
-  - name: remainingFlightTimeSec
-    label: "Flight Time Remaining"
-    type: number
-    unit: "s"

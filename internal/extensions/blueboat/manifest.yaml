@@ -82,27 +82,3 @@ commands:
           - value: loiter
             label: "Loiter"
 
-# Telemetry fields (for future dynamic panel rendering)
-telemetryFields:
-  - name: navMode
-    label: "Nav Mode"
-    type: string
-
-  - name: waterDepthM
-    label: "Water Depth"
-    type: number
-    unit: "m"
-
-  - name: battery.percentage
-    label: "Battery"
-    type: number
-    unit: "%"
-
-  - name: rangeRemainingM
-    label: "Range"
-    type: number
-    unit: "m"
-
-  - name: gpsFixQuality
-    label: "GPS Fix"
-    type: number
